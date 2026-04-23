@@ -38,6 +38,7 @@ class ActionsOnEventStart: NSObject {
 
         // Cleanup Passed Events
         Defaults[.processedEventsForFullscreenNotification] = Defaults[.processedEventsForFullscreenNotification].filter { $0.eventEndDate.timeIntervalSinceNow > 0 }
+        Defaults[.snoozedFullscreenNotifications] = Defaults[.snoozedFullscreenNotifications].filter { $0.value.timeIntervalSinceNow > 0 }
         Defaults[.processedEventsForAutoJoin] = Defaults[.processedEventsForAutoJoin].filter { $0.eventEndDate.timeIntervalSinceNow > 0 }
         Defaults[.processedEventsForRunScriptOnEventStart] = Defaults[.processedEventsForRunScriptOnEventStart].filter { $0.eventEndDate.timeIntervalSinceNow > 0 }
 
@@ -68,7 +69,10 @@ class ActionsOnEventStart: NSObject {
             let actionTimeForFullscreenNotification = Double(Defaults[.fullscreenNotificationTime].rawValue)
             let nonAlldayCandidateForFullscreenNotification = (timeInterval > -15 && timeInterval < actionTimeForFullscreenNotification)
 
-            if fullscreenNotificationActive && (nonAlldayCandidateForFullscreenNotification || allDayCandidate) {
+            let snoozedUntil = Defaults[.snoozedFullscreenNotifications][nextEvent.id]
+            let isSnoozed = snoozedUntil.map { now < $0 } ?? false
+
+            if fullscreenNotificationActive && !isSnoozed && (nonAlldayCandidateForFullscreenNotification || allDayCandidate) {
                 var events = Defaults[.processedEventsForFullscreenNotification]
 
                 let matchedEvent = events.first { $0.id == nextEvent.id }
