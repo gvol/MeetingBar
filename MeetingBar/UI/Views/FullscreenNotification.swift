@@ -57,6 +57,11 @@ struct FullscreenNotification: View {
                             .padding(.vertical, 5)
                             .padding(.horizontal, 20)
                     }
+                    if event.startDate > Date() {
+                        Button(action: snoozeUntilStart) {
+                            Text("fullscreen_notification_snooze_until_start".loco()).padding(.vertical, 5).padding(.horizontal, 20)
+                        }
+                    }
                     if presentation.actions.contains(.join) {
                         Button(action: joinEvent) {
                             Text("notifications_meetingbar_join_event_action".loco()).padding(
@@ -74,6 +79,12 @@ struct FullscreenNotification: View {
     }
 
     func dismiss() {
+        window?.close()
+    }
+
+    func snoozeUntilStart() {
+        Defaults[.snoozedFullscreenNotifications][event.id] = event.startDate
+        Defaults[.processedEventsForFullscreenNotification] = Defaults[.processedEventsForFullscreenNotification].filter { $0.id != event.id }
         window?.close()
     }
 

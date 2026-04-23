@@ -403,6 +403,7 @@
 "notifications_snooze_until_start" = "Snooze until start time";
 "notifications_snooze_for" = "Snooze for %@ min";
 "notifications_meetingbar_join_event_action" = "Join";
+"fullscreen_notification_snooze_until_start" = "Remind me at start";
 "notifications_event_ends_soon_body" = "The event ends soon";
 "notifications_event_ends_one_minute_body" = "The event ends in one minute";
 "notifications_event_ends_three_minutes_body" = "The event ends in three minutes";
