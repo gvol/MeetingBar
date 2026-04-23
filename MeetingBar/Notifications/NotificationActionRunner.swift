@@ -95,6 +95,9 @@ final class NotificationActionRunner {
                 includesEventsWithoutMeetingLink:
                     settings.fullscreenNotificationsForEventsWithoutMeetingLink
             ) else { return }
+            if let snoozedUntil = Defaults[.snoozedFullscreenNotifications][event.id], now < snoozedUntil {
+                return
+            }
         }
 
         guard let config = actionConfig(for: plan.kind, action: action),
@@ -208,6 +211,8 @@ final class NotificationRecordStore {
                 Defaults[.processedEventsForRunScriptOnEventStart].actionRecords,
                 now: now
             ).processedEvents
+        Defaults[.snoozedFullscreenNotifications] =
+            Defaults[.snoozedFullscreenNotifications].filter { $0.value.timeIntervalSince(now) > 0 }
     }
 
     // MARK: - Read

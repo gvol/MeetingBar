@@ -54,6 +54,7 @@ extension Defaults.Keys {
     )
     static let processedEventsForFullscreenNotification = Key<[ProcessedEvent]>(
         "processedEventsForFullscreenNotification", default: [])
+    static let snoozedFullscreenNotifications = Key<[String: Date]>("snoozedFullscreenNotifications", default: [:])
 
     static let preferredLanguage = Key<AppLanguage>("preferredLanguage", default: .system)
 
