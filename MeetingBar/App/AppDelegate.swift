@@ -143,7 +143,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             send: { [weak model] action in model?.send(action) },
             openPreferences: { [weak self] in self?.openPreferencesWindow(nil) },
             openChangelog: { [weak self] in self?.openChangelogWindow(nil) },
-            quit: { [weak self] in self?.quit(nil) }
+            quit: { [weak self] in self?.quit(nil) },
+            openPomodoroNotification: { [weak self] manager, title, subtitle, advanceLabel, showPostpone, isTerminal in
+                self?.openPomodoroNotificationWindow(
+                    manager: manager,
+                    title: title,
+                    subtitle: subtitle,
+                    advanceLabel: advanceLabel,
+                    showPostpone: showPostpone,
+                    isTerminal: isTerminal
+                )
+            }
         ))
 
         // Drive status bar from AppModel state: update title and menu whenever
@@ -257,6 +267,55 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc
     func openChangelogWindow(_: NSStatusBarButton?) {
         windowCoordinator.openChangelogWindow()
+    }
+
+    func openPomodoroNotificationWindow(
+        manager: PomodoroManager,
+        title: String,
+        subtitle: String,
+        advanceLabel: String?,
+        showPostpone: Bool,
+        isTerminal: Bool
+    ) {
+        let screenFrame = NSScreen.main?.frame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+
+        let window = NSWindow(
+            contentRect: screenFrame,
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+
+        window.contentView = NSHostingView(
+            rootView: PomodoroNotification(
+                title: title,
+                subtitle: subtitle,
+                advanceLabel: advanceLabel,
+                showPostpone: showPostpone,
+                isTerminal: isTerminal,
+                manager: manager,
+                window: window
+            )
+        )
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.collectionBehavior = .canJoinAllSpaces
+        window.collectionBehavior = .moveToActiveSpace
+
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
+        window.title = "Meetingbar Pomodoro Notification"
+        window.level = .screenSaver
+
+        let controller = NSWindowController(window: window)
+        controller.showWindow(self)
+
+        window.center()
+        window.orderFrontRegardless()
+
+        manager.registerNotificationWindow(window)
+
+        // Default sound on appear.
+        NSSound(named: "Glass")?.play()
     }
 
     @objc
