@@ -41,6 +41,14 @@ struct StatusBarDependencies {
     var openPreferences: @MainActor () -> Void = {}
     var openChangelog: @MainActor () -> Void = {}
     var quit: @MainActor () -> Void = {}
+    var openPomodoroNotification: @MainActor (
+        _ manager: PomodoroManager,
+        _ title: String,
+        _ subtitle: String,
+        _ advanceLabel: String?,
+        _ showPostpone: Bool,
+        _ isTerminal: Bool
+    ) -> Void = { _, _, _, _, _, _ in }
 }
 
 /// creates the menu in the system status bar, creates the menu items and controls the whole lifecycle.
@@ -63,6 +71,7 @@ final class StatusBarItemController {
     private var dependencies = StatusBarDependencies()
 
     private var cancellables = Set<AnyCancellable>()
+    let pomodoro = PomodoroManager()
 
     init() {
         statusItem = NSStatusBar.system.statusItem(
@@ -88,6 +97,8 @@ final class StatusBarItemController {
 
         setupDefaultsObservers()
         setupKeyboardShortcuts()
+
+        pomodoro.attach(statusBar: self)
     }
 
     private func setupDefaultsObservers() {
@@ -201,6 +212,17 @@ final class StatusBarItemController {
     }
 
     func updateTitle() {
+        // Pomodoro takes over the menu-bar title while a session is running.
+        if let pomodoroTitle = pomodoro.menuBarTitle() {
+            if let button = statusItem.button {
+                button.image = nil
+                button.toolTip = nil
+                button.imagePosition = .noImage
+                button.title = pomodoroTitle
+            }
+            return
+        }
+
         let now = Date()
         let presentation = StatusBarPresenter.presentation(
             nextEvent: events.nextEvent().map(StatusBarEventPresentationInput.init),
@@ -214,6 +236,19 @@ final class StatusBarItemController {
         }
 
         renderStatusBar(presentation)
+    }
+
+    func openPomodoroNotification(
+        manager: PomodoroManager,
+        title: String,
+        subtitle: String,
+        advanceLabel: String?,
+        showPostpone: Bool,
+        isTerminal: Bool
+    ) {
+        dependencies.openPomodoroNotification(
+            manager, title, subtitle, advanceLabel, showPostpone, isTerminal
+        )
     }
 
     func renderStatusBar(_ presentation: StatusBarPresentation) {
@@ -308,6 +343,8 @@ final class StatusBarItemController {
             nextEvent: menuState.nextEvent,
             includeJoinAction: false
         )
+        statusItemMenu.addItem(NSMenuItem.separator())
+        statusItemMenu.items += builder.buildPomodoroSection(state: pomodoro.menuState())
 
         if !menuState.meetings.bookmarks.isEmpty {
             statusItemMenu.addItem(NSMenuItem.separator())
@@ -344,6 +381,21 @@ final class StatusBarItemController {
             return
         }
         dependencies.send(.joinMeeting(eventID: event.id))
+    }
+
+    @objc
+    func startShallowPomodoro() {
+        pomodoro.start(.shallow)
+    }
+
+    @objc
+    func startDeepPomodoro() {
+        pomodoro.start(.deep)
+    }
+
+    @objc
+    func stopPomodoro() {
+        pomodoro.stop()
     }
 
     @objc
