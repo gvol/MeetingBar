@@ -158,6 +158,54 @@ struct MenuBuilder {
         return items
     }
 
+    // MARK: Pomodoro section --------------------------------------------------
+
+    func buildPomodoroSection(state: PomodoroMenuState) -> [NSMenuItem] {
+        var items: [NSMenuItem] = []
+
+        if state.isActive {
+            // Disabled status row
+            let statusItem = NSMenuItem(
+                title: state.statusLine ?? "",
+                action: nil,
+                keyEquivalent: ""
+            )
+            statusItem.isEnabled = false
+            items.append(statusItem)
+
+            // Stop
+            let stopItem = NSMenuItem(
+                title: "pomodoro_menu_stop".loco(),
+                action: #selector(StatusBarItemController.stopPomodoro),
+                keyEquivalent: ""
+            )
+            stopItem.target = target
+            items.append(stopItem)
+        } else {
+            let shallowItem = NSMenuItem(
+                title: "pomodoro_menu_start_shallow".loco(),
+                action: #selector(StatusBarItemController.startShallowPomodoro),
+                keyEquivalent: ""
+            )
+            shallowItem.target = target
+            shallowItem.isEnabled = state.shallowEnabled
+            shallowItem.toolTip = state.shallowTooltip
+            items.append(shallowItem)
+
+            let deepItem = NSMenuItem(
+                title: "pomodoro_menu_start_deep".loco(),
+                action: #selector(StatusBarItemController.startDeepPomodoro),
+                keyEquivalent: ""
+            )
+            deepItem.target = target
+            deepItem.isEnabled = state.deepEnabled
+            deepItem.toolTip = state.deepTooltip
+            items.append(deepItem)
+        }
+
+        return items
+    }
+
     // MARK: Preferences section -----------------------------------------------
 
     func buildPreferencesSection() -> [NSMenuItem] {

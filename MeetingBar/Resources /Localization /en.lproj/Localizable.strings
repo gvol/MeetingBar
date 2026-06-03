@@ -337,3 +337,21 @@
 
 "link_url_cant_open_title" = "Oops! Unable to open the link in %@";
 "link_url_cant_open_message" = "Ensure you have %@ installed, or open such links in a web browser from the preferences instead.";
+
+// MARK: - Pomodoro
+
+"pomodoro_shallow_work" = "Shallow work";
+"pomodoro_deep_work" = "Deep work";
+"pomodoro_break" = "Break";
+"pomodoro_menu_start_shallow" = "Start shallow work 🍅";
+"pomodoro_menu_start_deep" = "Start deep work 🧠";
+"pomodoro_menu_stop" = "Stop pomodoro";
+"pomodoro_menu_status" = "%@ — %@ left";
+"pomodoro_menu_too_soon_tooltip" = "Meeting in %@ min — too soon to start";
+"pomodoro_fs_break_title" = "Break time";
+"pomodoro_fs_work_title" = "Back to work";
+"pomodoro_fs_complete_title" = "Pomodoro complete — meeting starting";
+"pomodoro_fs_start_break" = "Start break";
+"pomodoro_fs_start_work" = "Start work";
+"pomodoro_fs_postpone" = "Postpone 2 min";
+"pomodoro_fs_stop" = "Stop";

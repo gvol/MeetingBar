@@ -265,6 +265,55 @@ class AppDelegate: NSObject, NSApplicationDelegate, @preconcurrency UNUserNotifi
         window.orderFrontRegardless()
     }
 
+    func openPomodoroNotificationWindow(
+        manager: PomodoroManager,
+        title: String,
+        subtitle: String,
+        advanceLabel: String?,
+        showPostpone: Bool,
+        isTerminal: Bool
+    ) {
+        let screenFrame = NSScreen.main?.frame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+
+        let window = NSWindow(
+            contentRect: screenFrame,
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+
+        window.contentView = NSHostingView(
+            rootView: PomodoroNotification(
+                title: title,
+                subtitle: subtitle,
+                advanceLabel: advanceLabel,
+                showPostpone: showPostpone,
+                isTerminal: isTerminal,
+                manager: manager,
+                window: window
+            )
+        )
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.collectionBehavior = .canJoinAllSpaces
+        window.collectionBehavior = .moveToActiveSpace
+
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
+        window.title = "Meetingbar Pomodoro Notification"
+        window.level = .screenSaver
+
+        let controller = NSWindowController(window: window)
+        controller.showWindow(self)
+
+        window.center()
+        window.orderFrontRegardless()
+
+        manager.registerNotificationWindow(window)
+
+        // Default sound on appear.
+        NSSound(named: "Glass")?.play()
+    }
+
     @objc
     func openPreferencesWindow(_: NSStatusBarButton?) {
         let contentView = PreferencesView().environmentObject(eventManager)

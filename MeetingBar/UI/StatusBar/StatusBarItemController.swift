@@ -37,6 +37,7 @@ final class StatusBarItemController {
     weak var appdelegate: AppDelegate!
 
     private var cancellables = Set<AnyCancellable>()
+    let pomodoro = PomodoroManager()
 
     init() {
         statusItem = NSStatusBar.system.statusItem(
@@ -163,9 +164,20 @@ final class StatusBarItemController {
 
     func setAppDelegate(appdelegate: AppDelegate) {
         self.appdelegate = appdelegate
+        pomodoro.attach(statusBar: self)
     }
 
     func updateTitle() {
+        // Pomodoro takes over the menu-bar title while a session is running.
+        if let pomodoroTitle = pomodoro.menuBarTitle() {
+            if let button = statusItem.button {
+                button.image = nil
+                button.toolTip = nil
+                button.imagePosition = .noImage
+                button.title = pomodoroTitle
+            }
+            return
+        }
         var title = "MeetingBar"
         var time = ""
         var nextEvent: MBEvent!
@@ -379,6 +391,8 @@ final class StatusBarItemController {
         }
         statusItemMenu.addItem(NSMenuItem.separator())
         statusItemMenu.items += builder.buildJoinSection(nextEvent: events.nextEvent())
+        statusItemMenu.addItem(NSMenuItem.separator())
+        statusItemMenu.items += builder.buildPomodoroSection(state: pomodoro.menuState())
 
         if !Defaults[.bookmarks].isEmpty {
             statusItemMenu.addItem(NSMenuItem.separator())
@@ -407,6 +421,21 @@ final class StatusBarItemController {
         } else {
             sendNotification("next_meeting_empty_title".loco(), "next_meeting_empty_message".loco())
         }
+    }
+
+    @objc
+    func startShallowPomodoro() {
+        pomodoro.start(.shallow)
+    }
+
+    @objc
+    func startDeepPomodoro() {
+        pomodoro.start(.deep)
+    }
+
+    @objc
+    func stopPomodoro() {
+        pomodoro.stop()
     }
 
     @objc
