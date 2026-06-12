@@ -153,7 +153,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     showPostpone: showPostpone,
                     isTerminal: isTerminal
                 )
-            }
+            },
+            openBedtimeNotification: { [weak self] in self?.openBedtimeNotificationWindow() }
         ))
 
         // Drive status bar from AppModel state: update title and menu whenever
@@ -267,6 +268,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc
     func openChangelogWindow(_: NSStatusBarButton?) {
         windowCoordinator.openChangelogWindow()
+    }
+
+    func openBedtimeNotificationWindow() {
+        let screenFrame = NSScreen.main?.frame ?? NSRect(x: 0, y: 0, width: 800, height: 600)
+
+        let window = NSWindow(
+            contentRect: screenFrame,
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+
+        window.contentView = NSHostingView(rootView: BedtimeNotification(window: window))
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.collectionBehavior = .canJoinAllSpaces
+        window.collectionBehavior = .moveToActiveSpace
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
+        window.title = "MeetingBar Bedtime Notification"
+        window.level = .screenSaver
+
+        let controller = NSWindowController(window: window)
+        controller.showWindow(self)
+
+        window.center()
+        window.orderFrontRegardless()
+
+        statusBarItem.bedtime.registerNotificationWindow(window)
+        NSSound(named: "Glass")?.play()
     }
 
     func openPomodoroNotificationWindow(

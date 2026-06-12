@@ -180,6 +180,9 @@ extension Defaults.Keys {
     static let customRegexes = Key<[String]>("customRegexes", default: [])
     static let filterEventRegexes = Key<[String]>("filterEventRegexes", default: [])
 
+    // Bedtime reminders
+    static let bedtimeRemindersEnabled = Key<Bool>("bedtimeRemindersEnabled", default: false)
+
     // Pomodoro (durations in minutes; hardcoded defaults, no Preferences UI yet)
     static let pomodoroShallowWorkMinutes = Key<Int>("pomodoroShallowWorkMinutes", default: 25)
     static let pomodoroShallowBreakMinutes = Key<Int>("pomodoroShallowBreakMinutes", default: 5)

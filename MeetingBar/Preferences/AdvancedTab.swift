@@ -29,11 +29,23 @@ struct AdvancedTab: View {
                 ScriptSection()
             }
 
+            Section(header: Label("Bedtime Reminders", systemImage: "moon.zzz")) {
+                BedtimeSection()
+            }
+
             Section(header: Text("preferences_section_regex_filters_title".loco())) {
                 FilterEventRegexesSection()
                 MeetingRegexesSection()
             }
         }
+    }
+}
+
+struct BedtimeSection: View {
+    @Default(.bedtimeRemindersEnabled) var bedtimeRemindersEnabled
+
+    var body: some View {
+        Toggle("Enable bedtime reminders (10:30 PM – 6:00 AM)", isOn: $bedtimeRemindersEnabled)
     }
 }
 
