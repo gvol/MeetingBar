@@ -49,6 +49,7 @@ struct StatusBarDependencies {
         _ showPostpone: Bool,
         _ isTerminal: Bool
     ) -> Void = { _, _, _, _, _, _ in }
+    var openBedtimeNotification: @MainActor () -> Void = {}
 }
 
 /// creates the menu in the system status bar, creates the menu items and controls the whole lifecycle.
@@ -72,6 +73,7 @@ final class StatusBarItemController {
 
     private var cancellables = Set<AnyCancellable>()
     let pomodoro = PomodoroManager()
+    let bedtime = BedtimeReminderManager()
 
     init() {
         statusItem = NSStatusBar.system.statusItem(
@@ -99,6 +101,7 @@ final class StatusBarItemController {
         setupKeyboardShortcuts()
 
         pomodoro.attach(statusBar: self)
+        bedtime.attach(statusBar: self)
     }
 
     private func setupDefaultsObservers() {
@@ -251,6 +254,10 @@ final class StatusBarItemController {
         )
     }
 
+    func openBedtimeNotification() {
+        dependencies.openBedtimeNotification()
+    }
+
     func renderStatusBar(_ presentation: StatusBarPresentation) {
         guard let button = statusItem.button else { return }
 
@@ -345,6 +352,13 @@ final class StatusBarItemController {
         )
         statusItemMenu.addItem(NSMenuItem.separator())
         statusItemMenu.items += builder.buildPomodoroSection(state: pomodoro.menuState())
+
+        if bedtime.isInBedtimeWindow {
+            statusItemMenu.addItem(NSMenuItem.separator())
+            let bedtimeItem = NSMenuItem(title: "🛌 Bedtime — 10:30 PM to 6:00 AM", action: nil, keyEquivalent: "")
+            bedtimeItem.isEnabled = false
+            statusItemMenu.addItem(bedtimeItem)
+        }
 
         if !menuState.meetings.bookmarks.isEmpty {
             statusItemMenu.addItem(NSMenuItem.separator())
