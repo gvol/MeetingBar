@@ -24,6 +24,10 @@ struct AdvancedTab: View {
                     ScriptSection()
                 }
             }
+            GroupBox(label: Label("Bedtime Reminders", systemImage: "moon.zzz")) {
+                BedtimeSection()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
             GroupBox(label: Label("Regex Filters", systemImage: "line.horizontal.3.decrease.circle")) {
                 VStack(spacing: 10) {
                     FilterEventRegexesSection()
@@ -37,6 +41,14 @@ struct AdvancedTab: View {
                 Spacer()
             }
         }
+    }
+}
+
+struct BedtimeSection: View {
+    @Default(.bedtimeRemindersEnabled) var bedtimeRemindersEnabled
+
+    var body: some View {
+        Toggle("Enable bedtime reminders (10:30 PM – 6:00 AM)", isOn: $bedtimeRemindersEnabled)
     }
 }
 

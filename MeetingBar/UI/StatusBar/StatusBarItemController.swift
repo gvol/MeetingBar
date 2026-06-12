@@ -38,6 +38,7 @@ final class StatusBarItemController {
 
     private var cancellables = Set<AnyCancellable>()
     let pomodoro = PomodoroManager()
+    let bedtime = BedtimeReminderManager()
 
     init() {
         statusItem = NSStatusBar.system.statusItem(
@@ -165,6 +166,7 @@ final class StatusBarItemController {
     func setAppDelegate(appdelegate: AppDelegate) {
         self.appdelegate = appdelegate
         pomodoro.attach(statusBar: self)
+        bedtime.attach(statusBar: self)
     }
 
     func updateTitle() {
@@ -393,6 +395,13 @@ final class StatusBarItemController {
         statusItemMenu.items += builder.buildJoinSection(nextEvent: events.nextEvent())
         statusItemMenu.addItem(NSMenuItem.separator())
         statusItemMenu.items += builder.buildPomodoroSection(state: pomodoro.menuState())
+
+        if bedtime.isInBedtimeWindow {
+            statusItemMenu.addItem(NSMenuItem.separator())
+            let bedtimeItem = NSMenuItem(title: "🛌 Bedtime — 10:30 PM to 6:00 AM", action: nil, keyEquivalent: "")
+            bedtimeItem.isEnabled = false
+            statusItemMenu.addItem(bedtimeItem)
+        }
 
         if !Defaults[.bookmarks].isEmpty {
             statusItemMenu.addItem(NSMenuItem.separator())
