@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-cd /Users/iandrus/vcs/MeetingBar/
+cd ~/vcs/MeetingBar/
 
 xcodebuild -scheme MeetingBar -configuration Debug \
   -derivedDataPath ./DerivedData build
