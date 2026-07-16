@@ -10,6 +10,7 @@ import AppKit
 import Combine
 import Defaults
 import KeyboardShortcuts
+import SwiftUI
 import UserNotifications
 
 @MainActor
