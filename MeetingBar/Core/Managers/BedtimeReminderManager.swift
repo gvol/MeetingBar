@@ -46,6 +46,13 @@ final class BedtimeReminderManager {
     private func checkAndFire() {
         guard Defaults[.bedtimeRemindersEnabled] else { return }
 
+        // Auto-close any lingering notification once we're past the 6:00 AM cutoff.
+        if !isInBedtimeWindow {
+            notificationWindow?.close()
+            notificationWindow = nil
+            return
+        }
+
         let now = Date()
         let slots = tonightSchedule()
         guard !slots.isEmpty else { return }
