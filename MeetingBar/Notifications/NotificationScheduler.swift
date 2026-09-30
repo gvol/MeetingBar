@@ -3,6 +3,7 @@
 //  MeetingBar
 //
 
+import Defaults
 import Foundation
 import UserNotifications
 
@@ -156,14 +157,37 @@ final class NotificationScheduler {
         runner.fireDueActions(events: events, settings: settings, now: now)
 
         let eventByID = Dictionary(events.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let desiredIDs = Set(plans.map { Self.identifierPrefix + $0.identity })
+        var desiredIDs = Set(plans.map { Self.identifierPrefix + $0.identity })
+        var allPlans = plans
+
+        // "Remind me at start" reschedules the fullscreen notification to
+        // fire exactly at `snoozedUntil` (the event start). That moment
+        // already lies in the past relative to the original plan's
+        // fire-date (anchor - offset), so `NotificationPlanner` no longer
+        // emits a plan for it and the coarse `fireDueActions` catch-up would
+        // have to land inside a narrow window on its next periodic run to
+        // catch it — which it very often misses. Schedule a dedicated,
+        // precisely-timed task for each pending snooze instead.
+        for (eventID, snoozedUntil) in Defaults[.snoozedFullscreenNotifications]
+        where snoozedUntil > now {
+            guard let event = eventByID[eventID] else { continue }
+            let snoozePlan = PlannedNotification(
+                eventID: eventID,
+                kind: .fullscreen,
+                fireDate: snoozedUntil,
+                identity: "snooze|\(eventID)"
+            )
+            let id = Self.identifierPrefix + snoozePlan.identity
+            desiredIDs.insert(id)
+            allPlans.append(snoozePlan)
+        }
 
         for id in Array(actionTasks.keys) where !desiredIDs.contains(id) {
             actionTasks[id]?.cancel()
             actionTasks[id] = nil
         }
 
-        for plan in plans {
+        for plan in allPlans {
             let id = Self.identifierPrefix + plan.identity
             guard actionTasks[id] == nil, let event = eventByID[plan.eventID] else { continue }
 

@@ -443,6 +443,40 @@ final class NotificationSchedulerTests: BaseTestCase {
             "fullscreen actions must not create system notification requests")
     }
 
+    /// Regression test for "Remind me at start": once the fullscreen
+    /// notification's own fire-date has passed, `NotificationPlanner` no
+    /// longer emits a plan for it, so the only thing that can re-show the
+    /// window is a dedicated task scheduled exactly for `snoozedUntil`. This
+    /// verifies that task exists and fires, rather than relying on the
+    /// coarse `fireDueActions` catch-up (which is only invoked when the
+    /// caller happens to call `reconcile` again inside a narrow window).
+    func testReconcileFiresSnoozedFullscreenActionAtExactSnoozeTimeWithoutAPlan() async {
+        let requestSink = FakeNotificationRequestSink()
+        let actionSink = FakeNotificationActionSink()
+        let scheduler = NotificationScheduler(sink: requestSink, actionSink: actionSink)
+        let scheduledNow = Date()
+        // Event start minus offset is already in the past, so no
+        // `PlannedNotification` is produced for it by `NotificationPlanner`.
+        let evt = wallClockEvent(id: "A", now: scheduledNow, startsIn: 0.05)
+        let snoozedUntil = scheduledNow.addingTimeInterval(0.3)
+        Defaults[.snoozedFullscreenNotifications] = ["A": snoozedUntil]
+
+        await scheduler.reconcile(
+            events: [evt],
+            settings: fullscreenOnlySettings(offset: 0.25),
+            now: scheduledNow
+        )
+
+        XCTAssertTrue(
+            actionSink.actions.isEmpty,
+            "must not fire immediately while still within the snooze window")
+
+        await waitUntil(timeout: 1.5) { actionSink.actions.count == 1 }
+
+        XCTAssertEqual(actionSink.actions.map(\.kind), [.fullscreen])
+        XCTAssertEqual(actionSink.actions.map(\.eventID), ["A"])
+    }
+
     func testReconcileDoesNotDuplicateFullscreenActionTask() async {
         let requestSink = FakeNotificationRequestSink()
         let actionSink = FakeNotificationActionSink()
